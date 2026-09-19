@@ -1,0 +1,33 @@
+{
+  "name": "گنجینهٔ واژگان",
+  "short_name": "گنجینه",
+  "description": "۳۲۸ واژه و اصطلاح سطح‌بالای فارسی، دسته‌بندی‌شده بر اساس کارکرد و تناسب کاربرد.",
+  "lang": "fa",
+  "dir": "rtl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ecefec",
+  "theme_color": "#9c3b34",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
