@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="۳۲۸ واژه و اصطلاح سطح‌بالای فارسی، دسته‌بندی‌شده بر اساس کارکرد، رجیستر و تناسب کاربرد.">
+<meta name="description" content="واژه‌ها و اصطلاح‌های سطح‌بالای فارسی، دسته‌بندی‌شده بر اساس کارکرد، رجیستر و تناسب کاربرد.">
 <meta name="theme-color" content="#ecefec" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0f1513" media="(prefers-color-scheme: dark)">
 <meta name="mobile-web-app-capable" content="yes">
@@ -628,6 +628,41 @@ window.ENTRIES = (window.ENTRIES || []).concat([
     {key:"k", label:"تناسب",  vals:["امن","آشنا","تکلف"]},
     {key:"L", label:"یادگیری",vals:["آموخته","نیاموخته"]}
   ];
+  // Android keyboards often emit the ARABIC ي and ك where a Persian keyboard
+  // emits ی and ک — same letter to a reader, different codepoints to indexOf.
+  // Everything is folded to one spelling before searching, on both sides.
+  var FOLD = {
+    "ي":"ی", "ى":"ی", "ئ":"ی",               // ي ى ئ → ی
+    "ك":"ک",                                                     // ك → ک
+    "ة":"ه",                                                     // ة → ه
+    "أ":"ا", "إ":"ا", "آ":"ا", "ٱ":"ا", // أ إ آ ٱ → ا
+    "ؤ":"و"                                                      // ؤ → و
+  };
+  function norm(s){
+    s = String(s).toLowerCase();
+    var out = "", i, c, ch;
+    for(i = 0; i < s.length; i++){
+      ch = s.charAt(i); c = s.charCodeAt(i);
+      if(c === 0x200C || c === 0x200D || c === 0x200E || c === 0x200F) continue; // ZWNJ & bidi marks
+      if(c === 0x0640) continue;                                                 // tatweel
+      if(c >= 0x064B && c <= 0x0652) continue;                                   // harakat
+      if(c === 0x0670) continue;                                                 // superscript alef
+      if(c >= 0x0660 && c <= 0x0669){ out += String.fromCharCode(c - 0x0660 + 48); continue; } // ٠–٩
+      if(c >= 0x06F0 && c <= 0x06F9){ out += String.fromCharCode(c - 0x06F0 + 48); continue; } // ۰–۹
+      out += FOLD[ch] || ch;
+    }
+    return out;
+  }
+  for(var hi = 0; hi < E.length; hi++){
+    E[hi]._h = norm(E[hi].t + " " + E[hi].m + " " + (E[hi].e || "") + " " + (E[hi].n || ""));
+  }
+  // every whitespace-separated word must appear, in any order
+  var qTokens = [];
+  function setQuery(s){
+    state.q = s;
+    qTokens = norm(s).split(/\s+/).filter(function(w){ return w.length > 0; });
+  }
+
   var RISK = {"امن":"safe","آشنا":"close","تکلف":"formal"};
   var FA = ["۰","۱","۲","۳","۴","۵","۶","۷","۸","۹"];
   function fa(n){ return String(n).replace(/\d/g, function(d){ return FA[+d]; }); }
@@ -704,10 +739,8 @@ window.ENTRIES = (window.ENTRIES || []).concat([
     if(state.k && x.k !== state.k) return false;
     if(state.L === "آموخته"   && !learned.has(x.t)) return false;
     if(state.L === "نیاموخته" &&  learned.has(x.t)) return false;
-    if(state.q){
-      var hay = (x.t+" "+x.m+" "+(x.e||"")+" "+(x.n||"")).replace(/[‌ً-ْ]/g,"");
-      var needle = state.q.replace(/[‌ً-ْ]/g,"").trim();
-      if(needle && hay.indexOf(needle) === -1) return false;
+    for(var qi = 0; qi < qTokens.length; qi++){
+      if(x._h.indexOf(qTokens[qi]) === -1) return false;
     }
     return true;
   }
@@ -717,7 +750,26 @@ window.ENTRIES = (window.ENTRIES || []).concat([
     var hits = E.filter(matches);
     document.getElementById("shown").textContent = fa(hits.length);
     if(!hits.length){
-      listEl.innerHTML = '<p class="empty">چیزی با این فیلترها پیدا نشد. یکی از فیلترها را روی «همه» بگذارید.</p>';
+      var active = [];
+      if(state.c){ for(var ai=0;ai<CATS.length;ai++){ if(CATS[ai].id===state.c) active.push("دسته: "+CATS[ai].name); } }
+      if(state.r) active.push("رجیستر: "+state.r);
+      if(state.f) active.push("شکل: "+state.f);
+      if(state.k) active.push("تناسب: "+state.k);
+      if(state.L) active.push("یادگیری: "+state.L);
+      listEl.innerHTML = '<div class="empty">'
+        + '<p style="margin:0 0 4px">چیزی پیدا نشد'
+        + (state.q ? ' برای «' + esc(state.q.trim()) + '»' : '') + '.</p>'
+        + (active.length
+            ? '<p style="margin:0 0 14px">این فیلترها هم روشن‌اند و دایرهٔ جست‌وجو را تنگ کرده‌اند — '
+              + esc(active.join(' · ')) + '</p>'
+              + '<button class="btn" id="reset" type="button">پاک کردن همهٔ فیلترها</button>'
+            : '<p style="margin:0">املای دیگری را امتحان کن، یا فقط بخشی از واژه را بنویس.</p>')
+        + '</div>';
+      var rb = document.getElementById("reset");
+      if(rb) rb.addEventListener("click", function(){
+        state.c = 0; state.r = state.f = state.k = state.L = "";
+        save(); syncChips(); syncMore(); render();
+      });
       return;
     }
     var out = "";
@@ -822,10 +874,14 @@ window.ENTRIES = (window.ENTRIES || []).concat([
   });
 
   var t;
-  qEl.addEventListener("input", function(){
+  function onQuery(){
     clearTimeout(t);
-    t = setTimeout(function(){ state.q = qEl.value; save(); render(); }, 120);
-  });
+    t = setTimeout(function(){ setQuery(qEl.value); save(); render(); }, 120);
+  }
+  // "input" covers typing, paste and the clear (×) button; "search" fires when
+  // a phone keyboard's Go/Search key is pressed
+  qEl.addEventListener("input", onQuery);
+  qEl.addEventListener("search", onQuery);
 
   document.getElementById("rand").addEventListener("click", function(){
     var hits = E.filter(matches); if(!hits.length) return;
@@ -848,6 +904,7 @@ window.ENTRIES = (window.ENTRIES || []).concat([
   }
   moreBtn.addEventListener("click", function(){ state.open = !state.open; save(); syncMore(); });
 
+  setQuery(state.q);
   buildFilters(); syncChips(); syncMore(); tallyLearned(); render();
 })();
 </script>
