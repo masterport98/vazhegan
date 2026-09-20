@@ -152,6 +152,24 @@ input[type="search"]:focus{border-color:var(--accent); box-shadow:0 0 0 3px var(
 .tag.risk-close{background:var(--warn-bg); color:var(--warn); border-color:transparent}
 .tag.risk-formal{background:var(--accent-bg); color:var(--accent-ink); border-color:transparent}
 
+/* «آموختم» toggle */
+.learn{
+  font-family:inherit; font-size:10.5px; line-height:1.7; cursor:pointer;
+  padding:0 9px 1px; border-radius:4px; margin-inline-end:3px;
+  background:transparent; color:var(--faint); border:1px dashed var(--line);
+  transition:all .13s;
+}
+.learn:hover{color:var(--tone); border-color:var(--tone)}
+.learn[aria-pressed="true"]{
+  background:var(--tone-bg); color:var(--tone);
+  border-style:solid; border-color:transparent; font-weight:600;
+}
+.learn:focus-visible{outline:2px solid var(--tone); outline-offset:2px}
+.entry.done .term{color:var(--muted)}
+.entry.done .ex{opacity:.72}
+.backup{display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; padding-top:12px; border-top:1px solid var(--line)}
+.backup .btn{padding:4px 12px}
+
 .empty{text-align:center; color:var(--muted); padding:60px 0; font-size:14px}
 .legend{
   margin-top:40px; padding:14px 16px; background:var(--surface); border:1px solid var(--line);
@@ -172,7 +190,7 @@ input[type="search"]:focus{border-color:var(--accent); box-shadow:0 0 0 3px var(
   <div class="top-in">
     <div class="brandrow">
       <h1>گنجینهٔ واژگان</h1>
-      <div class="tally"><b id="shown">۰</b> مدخل از <span id="total">۰</span></div>
+      <div class="tally"><b id="shown">۰</b> مدخل از <span id="total">۰</span><span id="learnt"></span></div>
     </div>
     <div class="searchrow">
       <input type="search" id="q" placeholder="جست‌وجو در واژه، معنی، نمونه و یادداشت…" autocomplete="off">
@@ -191,6 +209,14 @@ input[type="search"]:focus{border-color:var(--accent); box-shadow:0 0 0 3px var(
     <div><span class="k">شکل</span> — واژه، ترکیب، جملهٔ آماده، کنایه/ضرب‌المثل، الگوی جایگزینی.</div>
     <div><span class="k">تناسب</span> — <b>امن:</b> همه‌جا بی‌خطر · <b>آشنا:</b> فقط با کسی که رودربایستی ندارید · <b>تکلف:</b> در جای نادرست، متظاهرانه یا مضحک شنیده می‌شود.</div>
     <div style="margin-top:6px">کادر زرد زیر یک مدخل، تذکر کاربرد یا تصحیح املا/معناست.</div>
+    <div style="margin-top:6px"><span class="k">آموختم</span> — روی هر مدخل که زدی، علامت می‌خورد و از فیلتر «نیاموخته» بیرون می‌رود. این علامت‌ها فقط در همین مرورگر ذخیره می‌شوند؛ اگر داده‌های مرورگر را پاک کنی یا روی دستگاه دیگری باز کنی، از دست می‌روند — پس گاهی پشتیبان بگیر.</div>
+    <div class="backup">
+      <button class="btn" id="exp" type="button">گرفتن پشتیبان</button>
+      <button class="btn" id="imp" type="button">بازگرداندن پشتیبان</button>
+      <button class="btn" id="clr" type="button">پاک کردن همهٔ علامت‌ها</button>
+      <input type="file" id="impf" accept="application/json,.json" hidden>
+      <span id="bmsg" style="align-self:center; color:var(--tone)"></span>
+    </div>
   </section>
 </div>
 
@@ -531,6 +557,28 @@ window.ENTRIES = (window.ENTRIES || []).concat([
 {t:"حرف‌های کلاس‌های موفقیت",m:"شعارهای انگیزشی کلیشه‌ای و توخالی",c:8,r:"طنز",f:"ترکیب",ch:"گفتار",k:"آشنا",e:"از یک جایی به بعد تبدیل می‌شود به همان حرف‌های کلاس‌های موفقیت.",n:"در یادداشت اصلی «حرف‌های بن‌جولی» آمده بود که خوانا نبود؛ منظور روشن است."},
 {t:"مرید / مریدپروری",m:"پیرو بی‌چون‌وچرا | ساختن چنین پیروانی",c:3,r:"علمی",f:"واژه",ch:"هردو",k:"آشنا",e:"دانشجو تربیت نمی‌کرد؛ مرید می‌پروراند.",n:"در یادداشت اصلی «استاد مریدی» آمده بود؛ اگر منظورت نام شخص بوده، این مدخل را حذف کن."}
 ]);
+window.ENTRIES = (window.ENTRIES || []).concat([
+{t:"فاعل و مفعول ← سوژه و ابژه",m:"کنندهٔ کار و کسی که کار بر او واقع می‌شود | در فلسفه: شناسنده و شناخته‌شده",c:11,r:"علمی",f:"ترکیب",ch:"نوشتار",k:"امن",e:"در تمام این رابطه، او همیشه سوژه بوده و دیگری ابژه.",n:"املای درست «ابژه» است (نه ابجه). «فاعل/مفعول» اصطلاح دستور زبان است و «سوژه/ابژه» اصطلاح فلسفی؛ جای هم به کار نمی‌روند."},
+{t:"مشهور و مهجور",m:"نامدار و از‌یادرفته (با جناس آوایی)",c:11,r:"فاخر",f:"ترکیب",ch:"نوشتار",k:"امن",e:"شاعری که در زمانهٔ خود مشهور بود و یک نسل بعد مهجور شد."},
+{t:"از عرش تا ارض",m:"از بالاترین نقطه تا پایین‌ترین",c:11,r:"فاخر",f:"ترکیب",ch:"نوشتار",k:"امن",e:"در یک سخنرانی بیست‌دقیقه‌ای، از عرش تا ارض را به هم دوخت."},
+{t:"از عَرَض به جوهر",m:"از ویژگی رویین و گذرا به ذات و گوهر",c:11,r:"علمی",f:"ترکیب",ch:"نوشتار",k:"تکلف",e:"نقد خوب از عَرَض به جوهر می‌رود؛ نقد بد در سطح می‌ماند.",n:"در یادداشت اصلی «از قاعده به جوهره» آمده بود. جفت متضاد جاافتاده در فلسفهٔ اسلامی «عَرَض و جوهر» است: صفت عارضی در برابر ذات."},
+{t:"از جزء به کل",m:"از نمونه‌های جزئی به حکم کلی؛ روش استقرا",c:11,r:"علمی",f:"ترکیب",ch:"نوشتار",k:"امن",e:"تحلیلش از جزء به کل می‌رود: اول ده مورد، بعد نتیجهٔ عمومی.",n:"املای درست «جزء». مسیر معکوسش «از کل به جزء» است، یعنی قیاس."},
+{t:"از اوج تا حضیض",m:"از بلندترین نقطه تا پست‌ترین",c:11,r:"فاخر",f:"ترکیب",ch:"نوشتار",k:"امن",e:"مسیر آن تیم در سه فصل، از اوج تا حضیض بود.",n:"املای درست «حضیض» است (نه حذیذ)؛ یعنی فرودترین نقطه."},
+{t:"شاه و گدا",m:"بالاترین و پایین‌ترین جایگاه اجتماعی",c:11,r:"فاخر",f:"ترکیب",ch:"هردو",k:"امن",e:"در آن صف، شاه و گدا کنار هم ایستاده بودند."},
+{t:"عالم و جاهل",m:"دانا و نادان",c:11,r:"فاخر",f:"ترکیب",ch:"نوشتار",k:"امن",e:"مرز عالم و جاهل، نه مدرک است نه سن."},
+{t:"باکره و فاحشه",m:"دوگانهٔ کلیشه‌ای که زن را فقط در دو قطبِ پاک یا ناپاک می‌بیند",c:11,r:"فاخر",f:"ترکیب",ch:"نوشتار",k:"آشنا",e:"کل شخصیت‌پردازی زنان در این رمان، گرفتار همان دوگانهٔ باکره و فاحشه است.",n:"در روان‌شناسی به این دوگانه «عقدهٔ مقدس–روسپی» (Madonna–whore complex) می‌گویند و خودش موضوع نقد است، نه ابزار توصیف. در نوشتار جدی فقط برای نقدِ همین نگاه به کارش ببر، نه برای توصیف آدم‌ها. صورت جمله‌ای‌اش در یادداشت: «فاحشه باشی یا باکره»."},
+{t:"فراق و وصال",m:"جدایی از یار و رسیدن به او",c:11,r:"فاخر",f:"ترکیب",ch:"نوشتار",k:"امن",e:"کل این دیوان، رفت‌وآمدی است میان فراق و وصال."},
+{t:"از روز ازل تا ابد",m:"از آغازِ بی‌آغاز تا پایانِ بی‌پایان؛ همیشه",c:11,r:"فاخر",f:"ترکیب",ch:"هردو",k:"امن",e:"این دعوا از روز ازل تا ابد ادامه دارد؛ سرش هم هیچ‌وقت معلوم نبوده."},
+{t:"مؤمن یا منکر",m:"باورمند در برابر انکارکننده",c:11,r:"فاخر",f:"ترکیب",ch:"نوشتار",k:"امن",e:"در این بحث جایی برای حد وسط نگذاشته‌اند: یا مؤمنی یا منکر."},
+{t:"حقایق / عقاید",m:"آنچه مستقل از نظر ما درست است، در برابر آنچه ما به آن باور داریم",c:11,r:"علمی",f:"ترکیب",ch:"هردو",k:"امن",e:"بحث وقتی بی‌نتیجه می‌ماند که یکی از حقایق حرف بزند و دیگری از عقاید."},
+{t:"امیر و اسیر",m:"فرمانروا و دربند (با جناس حروف)",c:11,r:"فاخر",f:"ترکیب",ch:"نوشتار",k:"امن",e:"همان کسی که دیروز امیر بود، امروز اسیر همان دستگاه است."},
+{t:"پا باش نه بار",m:"کمک باش، نه سربار",c:11,r:"محاوره",f:"جمله",ch:"گفتار",k:"امن",e:"از بچه‌ها فقط یک چیز خواست: پا باشید نه بار."},
+{t:"مطالعهٔ طولی نه مقطعی",m:"پژوهشی که یک گروه را در طول زمان دنبال می‌کند، در برابر پژوهشی که فقط یک لحظه را می‌سنجد",c:11,r:"علمی",f:"ترکیب",ch:"نوشتار",k:"امن",e:"این نتیجه از یک مطالعهٔ مقطعی آمده؛ برای ادعای علیت، مطالعهٔ طولی لازم است."},
+{t:"تصریحی و تلویحی",m:"آشکار و گفته‌شده، در برابر پوشیده و اشاره‌وار",c:11,r:"علمی",f:"ترکیب",ch:"هردو",k:"امن",e:"در متن تصریحی چیزی نگفته، ولی تلویحی همه‌چیز را رسانده."},
+{t:"قدرت در حال افول و قدرت در حال ظهور",m:"قدرتی که رو به ضعف می‌رود در برابر قدرتی که بالا می‌آید",c:11,r:"علمی",f:"ترکیب",ch:"نوشتار",k:"امن",e:"تنش آن‌جا بالا می‌گیرد که قدرتِ در حال افول، قدرتِ در حال ظهور را جدی نگیرد."},
+{t:"ابزار یا ارباب",m:"در خدمت توست، یا حاکم بر تو",c:11,r:"فاخر",f:"ترکیب",ch:"هردو",k:"امن",e:"یک سؤال ساده بپرس: این گوشی ابزار توست یا ارباب تو؟"},
+{t:"نه به دنبال مرشد بودم نه مرید کسی شدم",m:"اعلام استقلال فکری: نه پیشوایی جستم، نه پیرو کسی شدم",c:11,r:"فاخر",f:"جمله",ch:"نوشتار",k:"امن",e:"در تمام این سال‌ها نه به دنبال مرشد بودم نه مرید کسی شدم."}
+]);
 </script>
 <script>
 (function(){
@@ -545,20 +593,42 @@ window.ENTRIES = (window.ENTRIES || []).concat([
     {id:7, name:"کنایه و ضرب‌المثل",       d:"تعبیرهای تثبیت‌شدهٔ عامیانه، اغلب نیش‌دار"},
     {id:8, name:"محاوره و حاضرجوابی",     d:"گفت‌وگوی روزمره، جواب‌های آماده و طنز موقعیتی"},
     {id:9, name:"جفت‌های جایگزینی",        d:"«به‌جای این، آن را بگو» — ارتقای مستقیم یک عبارت"},
-    {id:10,name:"وام‌واژه و معادل",        d:"واژه‌های فرنگی رایج و برابرنهادهایشان"}
+    {id:10,name:"وام‌واژه و معادل",        d:"واژه‌های فرنگی رایج و برابرنهادهایشان"},
+    {id:11,name:"جفت‌های متضاد و تقابل‌ها",d:"دوگانه‌های رویارو، برای ساختن تضاد در جمله و استدلال"}
   ];
   var AXES = [
     {key:"r", label:"رجیستر", vals:["فاخر","اداری","علمی","معیار","محاوره","طنز"]},
     {key:"f", label:"شکل",    vals:["واژه","ترکیب","جمله","کنایه","جایگزین"]},
-    {key:"k", label:"تناسب",  vals:["امن","آشنا","تکلف"]}
+    {key:"k", label:"تناسب",  vals:["امن","آشنا","تکلف"]},
+    {key:"L", label:"یادگیری",vals:["آموخته","نیاموخته"]}
   ];
   var RISK = {"امن":"safe","آشنا":"close","تکلف":"formal"};
   var FA = ["۰","۱","۲","۳","۴","۵","۶","۷","۸","۹"];
   function fa(n){ return String(n).replace(/\d/g, function(d){ return FA[+d]; }); }
 
-  var state = {q:"", c:0, r:"", f:"", k:"", open:false};
+  var state = {q:"", c:0, r:"", f:"", k:"", L:"", open:false};
   try{ var s = localStorage.getItem("ganjineh-filters"); if(s){ var o=JSON.parse(s); for(var p in state){ if(p in o) state[p]=o[p]; } } }catch(e){}
   function save(){ try{ localStorage.setItem("ganjineh-filters", JSON.stringify(state)); }catch(e){} }
+
+  // «آموختم» — keyed by the entry text, not its position, so the marks
+  // survive new entries being added to the collection later.
+  var learned = new Set();
+  try{
+    var L = JSON.parse(localStorage.getItem("ganjineh-learned") || "[]");
+    if(Array.isArray(L)) L.forEach(function(t){ learned.add(t); });
+  }catch(e){}
+  // a Set is not array-like, so [].slice.call() on it silently yields []
+  function learnedList(){
+    var a = []; learned.forEach(function(t){ a.push(t); }); return a;
+  }
+  function saveLearned(){
+    try{ localStorage.setItem("ganjineh-learned", JSON.stringify(learnedList())); }
+    catch(e){ msg("ذخیره نشد — حافظهٔ مرورگر در دسترس نیست."); }
+  }
+  function tallyLearned(){
+    var el = document.getElementById("learnt");
+    el.textContent = learned.size ? " · " + fa(learned.size) + " آموخته" : "";
+  }
 
   var filtersEl = document.getElementById("filters");
   var listEl    = document.getElementById("list");
@@ -606,6 +676,8 @@ window.ENTRIES = (window.ENTRIES || []).concat([
     if(state.r && x.r !== state.r) return false;
     if(state.f && x.f !== state.f) return false;
     if(state.k && x.k !== state.k) return false;
+    if(state.L === "آموخته"   && !learned.has(x.t)) return false;
+    if(state.L === "نیاموخته" &&  learned.has(x.t)) return false;
     if(state.q){
       var hay = (x.t+" "+x.m+" "+(x.e||"")+" "+(x.n||"")).replace(/[‌ً-ْ]/g,"");
       var needle = state.q.replace(/[‌ً-ْ]/g,"").trim();
@@ -631,13 +703,16 @@ window.ENTRIES = (window.ENTRIES || []).concat([
            + '<div><h2 class="gtitle">'+cat.name+'</h2><p class="gdesc">'+cat.d+'</p></div>'
            + '<span class="gcount">'+fa(rows.length)+' مدخل</span></div>';
       for(var i=0;i<rows.length;i++){
-        var x = rows[i];
-        out += '<article class="entry" id="e'+E.indexOf(x)+'">'
+        var x = rows[i], idx = E.indexOf(x), done = learned.has(x.t);
+        out += '<article class="entry'+(done?' done':'')+'" id="e'+idx+'">'
              + '<p class="term">'+esc(x.t)+'</p>'
              + '<p class="mean">'+esc(x.m)+'</p>'
              + (x.e ? '<p class="ex">'+esc(x.e)+'</p>' : '')
              + (x.n ? '<p class="note"><b>یادداشت:</b> '+esc(x.n)+'</p>' : '')
-             + '<div class="tags"><span class="tag">'+x.r+'</span><span class="tag">'+x.f+'</span>'
+             + '<div class="tags">'
+             + '<button type="button" class="learn" data-i="'+idx+'" aria-pressed="'+done+'">'
+             + (done ? '✓ آموختم' : 'آموختم') + '</button>'
+             + '<span class="tag">'+x.r+'</span><span class="tag">'+x.f+'</span>'
              + '<span class="tag">'+x.ch+'</span><span class="tag risk-'+RISK[x.k]+'">'+x.k+'</span></div>'
              + '</article>';
       }
@@ -645,6 +720,63 @@ window.ENTRIES = (window.ENTRIES || []).concat([
     }
     listEl.innerHTML = out;
   }
+
+  // toggling «آموختم» — update in place so the reader keeps their scroll
+  // position, unless the learning filter means the row must now disappear
+  listEl.addEventListener("click", function(ev){
+    var b = ev.target.closest("button.learn"); if(!b) return;
+    var x = E[+b.dataset.i]; if(!x) return;
+    var done = !learned.has(x.t);
+    if(done) learned.add(x.t); else learned.delete(x.t);
+    saveLearned(); tallyLearned();
+    if(state.L){ render(); return; }
+    b.setAttribute("aria-pressed", String(done));
+    b.textContent = done ? "✓ آموختم" : "آموختم";
+    b.closest(".entry").classList.toggle("done", done);
+  });
+
+  // ---- backup ----
+  var bmsg = document.getElementById("bmsg"), msgT;
+  function msg(s){
+    bmsg.textContent = s; clearTimeout(msgT);
+    msgT = setTimeout(function(){ bmsg.textContent = ""; }, 5000);
+  }
+  document.getElementById("exp").addEventListener("click", function(){
+    if(!learned.size){ msg("هنوز هیچ مدخلی را «آموختم» نزده‌ای."); return; }
+    var payload = {app:"ganjineh", saved:new Date().toISOString(), learned:learnedList()};
+    var url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 1)], {type:"application/json"}));
+    var a = document.createElement("a");
+    a.href = url; a.download = "ganjineh-learned.json";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+    msg(fa(learned.size) + " مدخل ذخیره شد.");
+  });
+  var impf = document.getElementById("impf");
+  document.getElementById("imp").addEventListener("click", function(){ impf.click(); });
+  impf.addEventListener("change", function(){
+    var file = impf.files && impf.files[0]; if(!file) return;
+    var fr = new FileReader();
+    fr.onload = function(){
+      var list;
+      try{
+        var o = JSON.parse(fr.result);
+        list = Array.isArray(o) ? o : o.learned;
+      }catch(e){}
+      if(!Array.isArray(list)){ msg("این فایل پشتیبان معتبر نیست."); impf.value=""; return; }
+      var before = learned.size;
+      list.forEach(function(t){ if(typeof t === "string") learned.add(t); });
+      saveLearned(); tallyLearned(); render();
+      msg(fa(learned.size - before) + " مدخل تازه افزوده شد (مجموع: " + fa(learned.size) + ").");
+      impf.value = "";
+    };
+    fr.readAsText(file, "utf-8");
+  });
+  document.getElementById("clr").addEventListener("click", function(){
+    if(!learned.size){ msg("چیزی برای پاک کردن نیست."); return; }
+    if(!confirm("همهٔ " + fa(learned.size) + " علامت «آموختم» پاک شود؟ این کار برگشت‌پذیر نیست.")) return;
+    learned.clear(); saveLearned(); tallyLearned(); render();
+    msg("همهٔ علامت‌ها پاک شد.");
+  });
 
   var t;
   qEl.addEventListener("input", function(){
@@ -665,7 +797,7 @@ window.ENTRIES = (window.ENTRIES || []).concat([
   var moreBtn = document.getElementById("more");
   function syncMore(){
     var axes = document.getElementById("axes");
-    var on = state.r || state.f || state.k;
+    var on = state.r || state.f || state.k || state.L;
     axes.hidden = !state.open;
     moreBtn.setAttribute("aria-expanded", String(!!state.open));
     moreBtn.classList.toggle("on", !!on);
@@ -673,7 +805,7 @@ window.ENTRIES = (window.ENTRIES || []).concat([
   }
   moreBtn.addEventListener("click", function(){ state.open = !state.open; save(); syncMore(); });
 
-  buildFilters(); syncChips(); syncMore(); render();
+  buildFilters(); syncChips(); syncMore(); tallyLearned(); render();
 })();
 </script>
 
