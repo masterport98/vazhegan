@@ -165,8 +165,33 @@ input[type="search"]:focus{border-color:var(--accent); box-shadow:0 0 0 3px var(
   border-style:solid; border-color:transparent; font-weight:600;
 }
 .learn:focus-visible{outline:2px solid var(--tone); outline-offset:2px}
-.entry.done .term{color:var(--muted)}
-.entry.done .ex{opacity:.72}
+.head{display:flex; align-items:baseline; gap:9px}
+.tick{
+  flex:none; width:16px; height:16px; margin:0; cursor:pointer;
+  accent-color:var(--tone); position:relative; top:2px;
+}
+.tick:focus-visible{outline:2px solid var(--tone); outline-offset:2px}
+
+/* a learned entry recedes hard — it should read as "done", not as content.
+   the controls stay at full strength so it can always be undone, and
+   hovering brings the text back for a second look. */
+.entry.done .term,
+.entry.done .mean,
+.entry.done .ex,
+.entry.done .note,
+.entry.done .tag{opacity:.3; transition:opacity .18s}
+.entry.done .term{color:var(--muted); font-weight:400}
+.entry.done .ex{border-inline-end-color:var(--line)}
+.entry.done:hover .term,
+.entry.done:hover .mean,
+.entry.done:hover .ex,
+.entry.done:hover .note,
+.entry.done:hover .tag,
+.entry.done:focus-within .term,
+.entry.done:focus-within .mean,
+.entry.done:focus-within .ex,
+.entry.done:focus-within .note,
+.entry.done:focus-within .tag{opacity:.85}
 .backup{display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; padding-top:12px; border-top:1px solid var(--line)}
 .backup .btn{padding:4px 12px}
 
@@ -209,7 +234,8 @@ input[type="search"]:focus{border-color:var(--accent); box-shadow:0 0 0 3px var(
     <div><span class="k">شکل</span> — واژه، ترکیب، جملهٔ آماده، کنایه/ضرب‌المثل، الگوی جایگزینی.</div>
     <div><span class="k">تناسب</span> — <b>امن:</b> همه‌جا بی‌خطر · <b>آشنا:</b> فقط با کسی که رودربایستی ندارید · <b>تکلف:</b> در جای نادرست، متظاهرانه یا مضحک شنیده می‌شود.</div>
     <div style="margin-top:6px">کادر زرد زیر یک مدخل، تذکر کاربرد یا تصحیح املا/معناست.</div>
-    <div style="margin-top:6px"><span class="k">آموختم</span> — روی هر مدخل که زدی، علامت می‌خورد و از فیلتر «نیاموخته» بیرون می‌رود. این علامت‌ها فقط در همین مرورگر ذخیره می‌شوند؛ اگر داده‌های مرورگر را پاک کنی یا روی دستگاه دیگری باز کنی، از دست می‌روند — پس گاهی پشتیبان بگیر.</div>
+    <div style="margin-top:6px"><span class="k">آموختم</span> — از دو راه: تیکِ کنار عبارت، یا دکمهٔ «آموختم» زیر آن. هر دو یک کار می‌کنند. مدخل علامت‌خورده کم‌رنگ می‌شود و از فیلتر «نیاموخته» بیرون می‌رود؛ برای خواندن دوباره، نشانگر را رویش ببر تا پررنگ شود.</div>
+    <div style="margin-top:6px">این علامت‌ها فقط در همین مرورگر ذخیره می‌شوند؛ اگر داده‌های مرورگر را پاک کنی یا روی دستگاه دیگری باز کنی، از دست می‌روند — پس گاهی پشتیبان بگیر.</div>
     <div class="backup">
       <button class="btn" id="exp" type="button">گرفتن پشتیبان</button>
       <button class="btn" id="imp" type="button">بازگرداندن پشتیبان</button>
@@ -705,7 +731,10 @@ window.ENTRIES = (window.ENTRIES || []).concat([
       for(var i=0;i<rows.length;i++){
         var x = rows[i], idx = E.indexOf(x), done = learned.has(x.t);
         out += '<article class="entry'+(done?' done':'')+'" id="e'+idx+'">'
-             + '<p class="term">'+esc(x.t)+'</p>'
+             + '<div class="head">'
+             + '<input type="checkbox" class="tick" id="t'+idx+'" data-i="'+idx+'"'
+             + (done?' checked':'') + ' aria-label="آموختم: '+esc(x.t).replace(/"/g,'&quot;')+'">'
+             + '<p class="term">'+esc(x.t)+'</p></div>'
              + '<p class="mean">'+esc(x.m)+'</p>'
              + (x.e ? '<p class="ex">'+esc(x.e)+'</p>' : '')
              + (x.n ? '<p class="note"><b>یادداشت:</b> '+esc(x.n)+'</p>' : '')
@@ -721,18 +750,32 @@ window.ENTRIES = (window.ENTRIES || []).concat([
     listEl.innerHTML = out;
   }
 
-  // toggling «آموختم» — update in place so the reader keeps their scroll
-  // position, unless the learning filter means the row must now disappear
-  listEl.addEventListener("click", function(ev){
-    var b = ev.target.closest("button.learn"); if(!b) return;
-    var x = E[+b.dataset.i]; if(!x) return;
-    var done = !learned.has(x.t);
+  // «آموختم» can be toggled from the checkbox or the tag button; both drive
+  // this, and it updates in place so the reader keeps their scroll position —
+  // unless the learning filter means the row must now disappear.
+  function setLearned(idx, done){
+    var x = E[idx]; if(!x) return;
     if(done) learned.add(x.t); else learned.delete(x.t);
     saveLearned(); tallyLearned();
     if(state.L){ render(); return; }
-    b.setAttribute("aria-pressed", String(done));
-    b.textContent = done ? "✓ آموختم" : "آموختم";
-    b.closest(".entry").classList.toggle("done", done);
+    var entry = document.getElementById("e"+idx); if(!entry) return;
+    entry.classList.toggle("done", done);
+    var b = entry.querySelector("button.learn");
+    if(b){
+      b.setAttribute("aria-pressed", String(done));
+      b.textContent = done ? "✓ آموختم" : "آموختم";
+    }
+    var tick = entry.querySelector("input.tick");
+    if(tick) tick.checked = done;
+  }
+  listEl.addEventListener("click", function(ev){
+    var b = ev.target.closest("button.learn"); if(!b) return;
+    var idx = +b.dataset.i;
+    setLearned(idx, !learned.has(E[idx].t));
+  });
+  listEl.addEventListener("change", function(ev){
+    var tick = ev.target.closest("input.tick"); if(!tick) return;
+    setLearned(+tick.dataset.i, tick.checked);
   });
 
   // ---- backup ----

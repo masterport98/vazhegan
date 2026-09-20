@@ -1,4 +1,4 @@
-const CACHE = 'ganjineh-0034cad9';
+const CACHE = 'ganjineh-5da1023b';
 const CORE = ['./', './index.html', './manifest.webmanifest',
               './icon-192.png', './icon-512.png', './icon-maskable-512.png'];
 
